@@ -190,9 +190,29 @@ def head(pg, css_href, font_href):
 </head>"""
 
 
+LOGO_IMG = getattr(C, "LOGO_IMG", None)    # client logo file (1x, 2x, w, h); None = template text logo
+MASCOT = getattr(C, "MASCOT", None)        # client mascot (file, w, h); None = template icon panels
+
+
 def logo_html():
+    if LOGO_IMG:
+        x1, x2, w, h = LOGO_IMG
+        return (f'<a class="logo logo-img" href="/" aria-label="{E(N)} home"><img src="/assets/img/{x1}" '
+                f'srcset="/assets/img/{x1} 1x, /assets/img/{x2} 2x" width="{w}" height="{h}" alt="{E(N)}"></a>')
     return (f'<a class="logo" href="/" aria-label="{E(N)} home">{IC["logo"]}'
             f'<span><b>{E(C.LOGO_TOP)}</b><small>{E(C.LOGO_SUB)}</small></span></a>')
+
+
+def mascot_img(eager=False):
+    f, w, h = MASCOT
+    return f'<img src="/assets/img/{f}" width="{w}" height="{h}" alt=""{"" if eager else " loading=lazy"}>'
+
+
+def panel(icon_svg, eager=False):
+    """Image panel: the client's mascot when we have one, else the template icon."""
+    if MASCOT:
+        return f'<div class="hm mascot" aria-hidden="true">{mascot_img(eager)}</div>'
+    return f'<div class="hm icon" aria-hidden="true">{icon_svg}</div>'
 
 
 def header(pg):
@@ -277,7 +297,7 @@ def render_home(pg):
     nap_card = (f'<div class="card callcard"><h2>{E(C.ASIDE_TITLE)}</h2><address class="nap">{nap_html()}'
                 f'<a class="ph" href="{TEL}">{S["phone_display"]}</a></address>{call_btns(call_label="Call")}</div>')
     return f"""<main id="main">
-<section class="hero"><div class="hero-media slash"><div class="hm icon" aria-hidden="true">{IC["drop"]}</div></div>
+<section class="hero"><div class="hero-media slash">{panel(IC["drop"], eager=True)}</div>
 <div class="wrap hero-grid"><div class="hero-txt">
 <p class="eyebrow">{E(C.EYEBROW)}</p>
 <h1>{two_tone(pg["h1"])}</h1>
@@ -289,7 +309,7 @@ def render_home(pg):
 </div></section>
 <div class="wrap"><nav class="strip" style="--n:{len(strip_items)}" aria-label="Services">{strip}</nav></div>
 <section class="band grey why" id="why"><div class="wrap why-grid">
-<div class="why-l"><h2 class="sec">{two_tone(C.WHY_TITLE)}</h2><div class="why-img icon" aria-hidden="true">{IC["drop"]}</div></div>
+<div class="why-l"><h2 class="sec">{two_tone(C.WHY_TITLE)}</h2>{f'<div class="why-img mascot" aria-hidden="true">{mascot_img()}</div>' if MASCOT else f'<div class="why-img icon" aria-hidden="true">{IC["drop"]}</div>'}</div>
 <div class="iboxes">{why_boxes()}</div></div></section>
 <section class="band about" id="about"><div class="wrap about-grid">
 <div class="about-img">{nap_card}</div>
@@ -306,7 +326,7 @@ def page_hero(pg):
     crumbs = " / ".join(f'<a href="{u}">{E(n)}</a>' for u, n in trail[:-1]) + f" / <span>{E(trail[-1][1])}</span>"
     lead = f'<p class="lead">{inline(pg["lead"])}</p>' if pg.get("lead") else ""
     icon = IC.get(pg.get("icon") or "drop")
-    return f"""<section class="phero"><div class="phero-media slash" aria-hidden="true"><div class="hm icon">{icon}</div></div><div class="wrap"><div class="phero-txt">
+    return f"""<section class="phero"><div class="phero-media slash" aria-hidden="true">{panel(icon, eager=True)}</div><div class="wrap"><div class="phero-txt">
 <nav class="crumbs" aria-label="Breadcrumb">{crumbs}</nav>
 <h1>{two_tone(pg["h1"])}</h1>{lead}{call_btns()}
 </div></div></section>"""
@@ -326,7 +346,7 @@ def render_contact(pg):
 <nav class="crumbs" aria-label="Breadcrumb">{crumbs}</nav>
 <h1>{two_tone(pg["h1"])}</h1><p class="lead">{inline(pg["lead"])}</p>
 {cards}{nap}<p>{inline(pg["after"])}</p>
-</div><div class="csplit-img" aria-hidden="true"><div class="hm icon">{IC["drop"]}</div></div></section></main>"""
+</div><div class="csplit-img" aria-hidden="true">{panel(IC["drop"], eager=True)}</div></section></main>"""
 
 
 def render_page(pg, css_href, font_href):
@@ -384,13 +404,21 @@ def main():
             continue
         p = os.path.join(OUT, f)
         shutil.rmtree(p) if os.path.isdir(p) else os.remove(p)
-    font_src = os.path.join(ROOT, "src", "fonts", "teko-latin.woff2")
-    fver = hashlib.md5(open(font_src, "rb").read()).hexdigest()[:8]
     os.makedirs(os.path.join(OUT, "assets"), exist_ok=True)
-    shutil.copyfile(font_src, os.path.join(OUT, "assets", "teko-latin.woff2"))
-    font_href = f"{BASE}/assets/teko-latin.woff2?v={fver}"
+    css = open(os.path.join(ROOT, "src", "site.css"), encoding="utf-8").read()
+    hrefs = {}
+    for fname in ["teko-latin.woff2"] + list(getattr(C, "FONTS", [])):   # {FONT} = Teko; {FONT:<file>} = any extra font
+        font_src = os.path.join(ROOT, "src", "fonts", fname)
+        fver = hashlib.md5(open(font_src, "rb").read()).hexdigest()[:8]
+        shutil.copyfile(font_src, os.path.join(OUT, "assets", fname))
+        hrefs[fname] = f"{BASE}/assets/{fname}?v={fver}"
+        css = css.replace("{FONT:" + fname + "}", hrefs[fname])
+    css = css.replace("{FONT}", hrefs["teko-latin.woff2"])
+    font_href = hrefs[(getattr(C, "FONTS", None) or ["teko-latin.woff2"])[0]]
+    img_src = os.path.join(ROOT, "src", "img")
+    if os.path.isdir(img_src):
+        shutil.copytree(img_src, os.path.join(OUT, "assets", "img"))
     P = C.PALETTE
-    css = open(os.path.join(ROOT, "src", "site.css"), encoding="utf-8").read().replace("{FONT}", font_href)
     css = (css.replace("{BRAND}", P["brand"]).replace("{BRAND_DK}", P["brand_dk"])
               .replace("{ACCENT}", P["accent"]).replace("{DARK}", P["dark"]))
     ver = hashlib.md5(css.encode()).hexdigest()[:8]

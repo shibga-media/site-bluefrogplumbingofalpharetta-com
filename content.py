@@ -1,6 +1,6 @@
 """All words and facts for bluefrogplumbingofalpharetta.com. Edit here, then run: python3 build.py (rewrites docs/).
 Public repo: no private data. Rules: only true copy; no "licensed", no years, no reviews/testimonials,
-no Bluefrog corporate logos/images/text."""
+no Bluefrog corporate text. Logo + mascot: supplied by the client on 23 Oct 2026 (src/img, made by src/prep_images.py)."""
 import json, os
 
 INDEXABLE = True        # LIVE site (switched on 16 Oct 2026). Never noindex.
@@ -8,7 +8,7 @@ INDEXABLE = True        # LIVE site (switched on 16 Oct 2026). Never noindex.
 SITE = {
     "domain": "https://bluefrogplumbingofalpharetta.com",
     "base": "",
-    "name": "Bluefrog Plumbing + Drain of Alpharetta",   # Brian Kingsley's own spelling. Text only: no corporate logo.
+    "name": "Bluefrog Plumbing + Drain of Alpharetta",   # Brian Kingsley's own spelling.
     "phone_display": "(678) 331-5843",                  # CallScaler tracking number (bought 16 Oct 2026)
     "phone_tel": "+16783315843",
     "phone_e164": "+1-678-331-5843",
@@ -18,7 +18,11 @@ SITE = {
     "city": "Roswell", "region": "GA", "zip": "30076",
     "schema_type": "Plumber",
 }
-PALETTE = {"brand": "#0b7a75", "brand_dk": "#085c58", "accent": "#f4b942", "dark": "#12302e"}   # teal + amber
+# Bluefrog brand colours, sampled from the client's logo file (23 Oct 2026): blue #0078BA, dark blue #006CA3, green #8DC63F.
+PALETTE = {"brand": "#0078ba", "brand_dk": "#006ca3", "accent": "#8dc63f", "dark": "#0b3554"}
+LOGO_IMG = ("logo-60.png", "logo-120.png", 392, 60)    # 1x, 2x, width, height - client's own logo
+MASCOT = ("mascot.webp", 593, 900)                      # client's frog mascot, shown in the image panels
+FONTS = ["fredoka-latin.woff2", "nunito-latin.woff2"]  # brand-matched rounded fonts (SIL OFL); first one is preloaded
 
 COPY = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "copy.json")))
 
