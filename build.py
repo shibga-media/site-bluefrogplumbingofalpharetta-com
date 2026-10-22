@@ -183,13 +183,19 @@ def head(pg, css_href, font_href):
 <meta property="og:title" content="{E(pg["title"])}"><meta property="og:description" content="{E(pg["description"])}">
 <meta property="og:url" content="{canon}">
 <meta name="theme-color" content="{C.PALETTE["brand"]}">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+{FAVICON_TAGS}
 <link rel="preload" href="{font_href}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{css_href}">
 {ld_scripts(pg)}
 </head>"""
 
 
+FAVICON_IMG = getattr(C, "FAVICON_IMG", False)   # True = PNG/ICO favicons from src/img (made by src/prep_images.py)
+FAVICON_TAGS = ('<link rel="icon" href="/favicon.ico" sizes="any">'
+                '<link rel="icon" href="/assets/img/favicon-32.png" type="image/png" sizes="32x32">'
+                '<link rel="icon" href="/assets/img/favicon-192.png" type="image/png" sizes="192x192">'
+                '<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">'
+                if FAVICON_IMG else '<link rel="icon" href="/favicon.svg" type="image/svg+xml">')
 LOGO_IMG = getattr(C, "LOGO_IMG", None)    # client logo file (1x, 2x, w, h); None = template text logo
 MASCOT = getattr(C, "MASCOT", None)        # client mascot (file, w, h); None = template icon panels
 
@@ -424,7 +430,10 @@ def main():
     ver = hashlib.md5(css.encode()).hexdigest()[:8]
     write("/assets/site.css", css)
     css_href = f"{BASE}/assets/site.css?v={ver}"
-    write("/favicon.svg", IC["logo"].replace('aria-hidden="true"', 'xmlns="http://www.w3.org/2000/svg"'))
+    if FAVICON_IMG:
+        shutil.copyfile(os.path.join(img_src, "favicon.ico"), os.path.join(OUT, "favicon.ico"))
+    else:
+        write("/favicon.svg", IC["logo"].replace('aria-hidden="true"', 'xmlns="http://www.w3.org/2000/svg"'))
 
     pages = build_pages()
     for pg in pages:

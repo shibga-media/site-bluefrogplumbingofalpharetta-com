@@ -50,3 +50,13 @@ h = 900
 w = round(mascot.width * h / mascot.height)
 mascot.resize((w, h), Image.LANCZOS).save(os.path.join(OUT, "mascot.webp"), quality=86, method=6)
 print("mascot", w, h)
+
+# Favicon (23 Oct 2026): the mascot's head, square crop from the original file.
+head = m_in.convert("RGBA").crop((610, 90, 1450, 930))
+for size in (32, 192):
+    head.resize((size, size), Image.LANCZOS).save(os.path.join(OUT, f"favicon-{size}.png"), optimize=True)
+apple = Image.new("RGBA", (180, 180), (255, 255, 255, 255))       # iOS home-screen icon: no transparency
+apple.alpha_composite(head.resize((180, 180), Image.LANCZOS))
+apple.convert("RGB").save(os.path.join(OUT, "apple-touch-icon.png"), optimize=True)
+head.save(os.path.join(OUT, "favicon.ico"), sizes=[(16, 16), (32, 32), (48, 48)])
+print("favicon done")

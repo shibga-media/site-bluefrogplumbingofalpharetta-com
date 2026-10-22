@@ -22,6 +22,7 @@ SITE = {
 PALETTE = {"brand": "#0078ba", "brand_dk": "#006ca3", "accent": "#8dc63f", "dark": "#0b3554"}
 LOGO_IMG = ("logo-60.png", "logo-120.png", 392, 60)    # 1x, 2x, width, height - client's own logo
 MASCOT = ("mascot.webp", 593, 900)                      # client's frog mascot, shown in the image panels
+FAVICON_IMG = True                                      # browser-tab icon = the mascot's head (23 Oct 2026)
 FONTS = ["fredoka-latin.woff2", "nunito-latin.woff2"]  # brand-matched rounded fonts (SIL OFL); first one is preloaded
 
 COPY = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "copy.json")))
